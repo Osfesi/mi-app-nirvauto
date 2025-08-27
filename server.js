@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = 3000;
+const port = 3000; // Esta línea no es necesaria para Vercel
 
 // Middleware para procesar JSON
 app.use(express.json());
