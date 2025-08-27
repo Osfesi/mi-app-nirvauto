@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 3000; // Esta línea no es necesaria para Vercel, pero puedes dejarla si quieres
 
 // Middleware para procesar JSON
 app.use(express.json());
@@ -25,8 +25,6 @@ app.post('/api/add-user', (req, res) => {
         return res.status(400).json({ success: false, message: 'Faltan campos.' });
     }
 
-    // Guardar el nuevo usuario en el objeto
-    // En un entorno real, aquí guardarías en una base de datos
     userCredentials[username] = { password, link };
 
     console.log(`Usuario '${username}' añadido. Credenciales actualizadas:`, userCredentials);
@@ -38,14 +36,12 @@ app.post('/api/add-user', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
-    // Verificar credenciales del administrador (si no quieres que estén en el cliente)
     const adminUser = "1955";
     const adminPass = "Nirvauto00";
     if (username === adminUser && password === adminPass) {
         return res.json({ success: true, isAdmin: true });
     }
 
-    // Verificar credenciales de usuarios normales
     if (userCredentials[username] && userCredentials[username].password === password) {
         const link = userCredentials[username].link;
         return res.json({ success: true, link });
@@ -54,9 +50,5 @@ app.post('/api/login', (req, res) => {
     res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
 });
 
-// Servir archivos estáticos (como tu index.html)
-app.use(express.static('public'));
-
-app.listen(port, () => {
-    console.log(`Servidor escuchando en http://localhost:${port}`);
-});
+// Exportar la app Express para Vercel
+module.exports = app;
