@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Nirvauto</title>
     <style>
-        body {
+        body, html {
             font-family: sans-serif;
             background-color: #f0f2f5;
             display: flex;
@@ -26,13 +26,13 @@
             max-width: 400px;
         }
         img {
-            max-width: 150px;
+            max-width: 200px;
             margin-bottom: 25px;
         }
         .tagline {
             font-size: 1.2rem;
             color: #555;
-            margin-top: -15px; /* Ajusta el espacio entre el logo y el texto */
+            margin-top: -15px;
             margin-bottom: 25px;
             font-weight: 500;
         }
@@ -76,7 +76,6 @@
             font-weight: bold;
         }
         
-        /* Reglas para móviles */
         @media (max-width: 600px) {
             body {
                 height: auto;
@@ -88,7 +87,7 @@
                 max-width: 95%;
             }
             img {
-                max-width: 120px;
+                max-width: 150px;
             }
         }
     </style>
@@ -98,10 +97,10 @@
         <img src="https://i.ibb.co/C3tc109k/logo-nirvauto.png" alt="Logo de Nirvauto">
         <p class="tagline">Centro de formación Nirvauto</p>
         <div id="login-form">
-            <h2>Acceso Clientes</h2>
+            <h2>Acceso Trabajadores</h2>
             <input type="text" id="username" placeholder="Usuario">
             <input type="password" id="password" placeholder="Contraseña">
-            <button id="loginButton">Acceder</button>
+            <button id="loginButton">Iniciar Sesión</button>
             <div id="message"></div>
         </div>
 
@@ -110,7 +109,7 @@
             <input type="text" id="new-username" placeholder="Nuevo Usuario">
             <input type="text" id="new-password" placeholder="Nueva Contraseña">
             <input type="text" id="new-link" placeholder="Enlace">
-            <button id="addUserButton">Añadir Usuario</button>
+            <button id="addUserButton">Añadir</button>
             <button id="logoutButton">Cerrar Sesión</button>
             <div id="admin-message"></div>
         </div>
@@ -130,13 +129,11 @@
         const newLinkInput = document.getElementById('new-link');
         const adminMessageDiv = document.getElementById('admin-message');
 
-        // Función para mostrar mensajes
         function showMessage(element, text, isSuccess) {
             element.textContent = text;
             element.style.color = isSuccess ? 'green' : 'red';
         }
 
-        // Función para manejar el inicio de sesión
         loginButton.addEventListener('click', function() {
             const username = usernameInput.value;
             const password = passwordInput.value;
@@ -157,7 +154,6 @@
                             adminPanel.classList.remove('hidden');
                             showMessage(messageDiv, 'Acceso como administrador exitoso.', true);
                         } else {
-                            // Redirigir a la URL proporcionada
                             window.location.href = data.link;
                         }
                     } else {
@@ -173,14 +169,12 @@
             }
         });
 
-        // Función para cerrar sesión (oculta el panel de admin)
         logoutButton.addEventListener('click', function() {
             adminPanel.classList.add('hidden');
             loginForm.classList.remove('hidden');
-            showMessage(messageDiv, '', true); // Limpiar mensaje de éxito
+            showMessage(messageDiv, '', true);
         });
 
-        // Función para añadir un nuevo usuario desde el panel de administración
         addUserButton.addEventListener('click', function() {
             const newUser = newUsernameInput.value;
             const newPass = newPasswordInput.value;
