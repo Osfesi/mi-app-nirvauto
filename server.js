@@ -1,6 +1,7 @@
 const express = require('express');
+const path = require('path');
 const app = express();
-const port = 3000; // Esta línea no es necesaria para Vercel, pero puedes dejarla si quieres
+const port = 3000;
 
 // Middleware para procesar JSON
 app.use(express.json());
@@ -48,6 +49,11 @@ app.post('/api/login', (req, res) => {
     }
 
     res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+});
+
+// Servir el archivo HTML en la ruta raíz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Exportar la app Express para Vercel
