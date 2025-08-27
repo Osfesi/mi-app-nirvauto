@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Nirvauto</title>
     <style>
         body {
@@ -12,17 +13,28 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            box-sizing: border-box;
+            padding: 20px;
         }
         .container {
             background-color: #fff;
-            padding: 30px 40px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 100%;
+            max-width: 400px;
         }
         img {
-            max-width: 200px;
+            max-width: 150px;
             margin-bottom: 25px;
+        }
+        .tagline {
+            font-size: 1.2rem;
+            color: #555;
+            margin-top: -15px; /* Ajusta el espacio entre el logo y el texto */
+            margin-bottom: 25px;
+            font-weight: 500;
         }
         input[type="password"], input[type="text"] {
             width: 100%;
@@ -38,98 +50,143 @@
             padding: 12px;
             margin-top: 20px;
             background-color: #007bff;
-            color: #fff;
+            color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            font-size: 16px;
         }
         button:hover {
             background-color: #0056b3;
         }
+        #admin-panel {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        h2 {
+            font-size: 1.5rem;
+            color: #333;
+        }
         .hidden {
             display: none;
         }
-        h2 {
-            color: #333;
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        /* Reglas para móviles */
+        @media (max-width: 600px) {
+            body {
+                height: auto;
+                padding: 10px;
+                align-items: flex-start;
+            }
+            .container {
+                padding: 20px;
+                max-width: 95%;
+            }
+            img {
+                max-width: 120px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="https://i.ibb.co/C3tc109k/logo-nirvauto.png" alt="Logo Nirvauto">
-
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Usuario" required>
-            <input type="password" id="password" placeholder="Contraseña" required>
-            <button type="submit">Acceder</button>
-        </form>
+        <img src="https://nirvauto.es/wp-content/uploads/2021/08/cropped-logo-nirvauto-horizontal-fondo-transp.png" alt="Logo de Nirvauto">
+        <p class="tagline">Centro de formación Nirvauto</p>
+        <div id="login-form">
+            <h2>Acceso Clientes</h2>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button id="loginButton">Acceder</button>
+            <div id="message"></div>
+        </div>
 
         <div id="admin-panel" class="hidden">
-            <h2>Panel de Administrador</h2>
-            <p>Añade nuevos usuarios para la formación.</p>
-            <input type="text" id="new-username" placeholder="Nuevo nombre de usuario" required>
-            <input type="password" id="new-password" placeholder="Nueva contraseña" required>
-            <input type="text" id="new-link" placeholder="Enlace del curso (URL)" required>
-            <button id="add-user-button">Añadir usuario</button>
+            <h2>Panel de Administración</h2>
+            <input type="text" id="new-username" placeholder="Nuevo Usuario">
+            <input type="text" id="new-password" placeholder="Nueva Contraseña">
+            <input type="text" id="new-link" placeholder="Enlace">
+            <button id="addUserButton">Añadir Usuario</button>
+            <button id="logoutButton">Cerrar Sesión</button>
+            <div id="admin-message"></div>
         </div>
     </div>
 
     <script>
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('username');
+        const loginForm = document.getElementById('login-form');
         const adminPanel = document.getElementById('admin-panel');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginButton = document.getElementById('loginButton');
+        const messageDiv = document.getElementById('message');
+        const logoutButton = document.getElementById('logoutButton');
+        const addUserButton = document.getElementById('addUserButton');
         const newUsernameInput = document.getElementById('new-username');
         const newPasswordInput = document.getElementById('new-password');
         const newLinkInput = document.getElementById('new-link');
-        const addUserButton = document.getElementById('add-user-button');
+        const adminMessageDiv = document.getElementById('admin-message');
 
-        // Lógica para el inicio de sesión
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
+        // Función para mostrar mensajes
+        function showMessage(element, text, isSuccess) {
+            element.textContent = text;
+            element.style.color = isSuccess ? 'green' : 'red';
+        }
 
-            const user = usernameInput.value;
-            const pass = document.getElementById('password').value;
+        // Función para manejar el inicio de sesión
+        loginButton.addEventListener('click', function() {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
 
-            // Envía las credenciales al servidor para su verificación
-            fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username: user, password: pass }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Si el servidor indica que es administrador, muestra el panel
-                    if (data.isAdmin) {
-                        loginForm.classList.add('hidden');
-                        adminPanel.classList.remove('hidden');
+            if (username && password) {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.isAdmin) {
+                            loginForm.classList.add('hidden');
+                            adminPanel.classList.remove('hidden');
+                            showMessage(messageDiv, 'Acceso como administrador exitoso.', true);
+                        } else {
+                            // Redirigir a la URL proporcionada
+                            window.location.href = data.link;
+                        }
                     } else {
-                        // Si es un usuario normal, redirige al enlace
-                        window.location.href = data.link;
+                        showMessage(messageDiv, data.message, false);
                     }
-                } else {
-                    // Muestra el mensaje de error del servidor
-                    alert(data.message);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('Error al conectar con el servidor.');
-            });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showMessage(messageDiv, 'Error al conectar con el servidor.', false);
+                });
+            } else {
+                showMessage(messageDiv, 'Por favor, ingrese usuario y contraseña.', false);
+            }
         });
 
-        // Lógica para añadir un nuevo usuario desde el panel de administración
+        // Función para cerrar sesión (oculta el panel de admin)
+        logoutButton.addEventListener('click', function() {
+            adminPanel.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            showMessage(messageDiv, '', true); // Limpiar mensaje de éxito
+        });
+
+        // Función para añadir un nuevo usuario desde el panel de administración
         addUserButton.addEventListener('click', function() {
             const newUser = newUsernameInput.value;
             const newPass = newPasswordInput.value;
             const newLink = newLinkInput.value;
 
             if (newUser && newPass && newLink) {
-                // Envía los datos al servidor para guardarlos
                 fetch('/api/add-user', {
                     method: 'POST',
                     headers: {
@@ -140,20 +197,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(`Usuario '${newUser}' añadido con éxito.`);
+                        showMessage(adminMessageDiv, `Usuario '${newUser}' añadido con éxito.`, true);
                         newUsernameInput.value = "";
                         newPasswordInput.value = "";
                         newLinkInput.value = "";
                     } else {
-                        alert('Error al añadir el usuario: ' + data.message);
+                        showMessage(adminMessageDiv, 'Error al añadir el usuario: ' + data.message, false);
                     }
                 })
                 .catch((error) => {
                     console.error('Error:', error);
-                    alert('Error al conectar con el servidor.');
+                    showMessage(adminMessageDiv, 'Error al conectar con el servidor.', false);
                 });
             } else {
-                alert('Por favor, complete todos los campos.');
+                showMessage(adminMessageDiv, 'Por favor, complete todos los campos.', false);
             }
         });
     </script>
