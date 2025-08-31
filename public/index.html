@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Nirvauto</title>
+    <style>
+        body, html {
+            font-family: sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        img {
+            max-width: 200px;
+            margin-bottom: 25px;
+        }
+        .tagline {
+            font-size: 1.2rem;
+            color: #555;
+            margin-top: -15px;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #loginButton {
+            background-color: #007bff;
+        }
+        #infoButton {
+            background-color: #dc3545;
+        }
+        #backButton {
+            background-color: #dc3545; /* Color rojo */
+        }
+        #addUserButton, #logoutButton {
+            background-color: #28a745;
+            margin-top: 10px;
+        }
+        #logoutButton {
+            background-color: #6c757d;
+        }
+        
+        #admin-panel, #info-panel {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        h2 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+        .hidden {
+            display: none;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+        ul li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                height: auto;
+                padding: 10px;
+                align-items: flex-start;
+            }
+            .container {
+                padding: 20px;
+                max-width: 95%;
+            }
+            img {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.ibb.co/C3tc109k/logo-nirvauto.png" alt="Logo de Nirvauto">
+        <p class="tagline">Centro de formación Nirvauto</p>
+        <div id="login-form">
+            <h2>Acceso Trabajadores</h2>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button id="loginButton">Iniciar Sesión</button>
+            <button id="infoButton">Información que debes saber</button>
+            <div id="message"></div>
+        </div>
+
+        <div id="admin-panel" class="hidden">
+            <h2>Panel de Administración</h2>
+            <input type="text" id="new-username" placeholder="Nuevo Usuario">
+            <input type="text" id="new-password" placeholder="Nueva Contraseña">
+            <input type="text" id="new-link" placeholder="Enlace">
+            <button id="addUserButton">Añadir</button>
+            <button id="logoutButton">Cerrar Sesión</button>
+            <div id="admin-message"></div>
+        </div>
+        
+        <div id="info-panel" class="hidden">
+            <br>
+            <br>
+            <h1>Información importante</h1>
+            <p>
+                Aprende, compite y evalúa tus conocimientos con tus compañeros.
+            </p>
+            <ul>
+                <li>
+                    <strong>Correo:</strong> Si se te pide, usa tu correo corporativo de Nirvauto.
+                </li>
+                <li>
+                    <strong>Nombre:</strong> Si se te pide, usa tu nombre y la primera letra del apellido.
+                </li>
+            </ul>
+            <h3>Condiciones de la prueba:</h3>
+            <ul>
+                <li>La prueba es corta y debe completarse sin interrupciones.</li>
+                <li>No se puede guardar el progreso.</li>
+                <li>La rapidez en las respuestas será valorada.</li>
+            </ul>
+            <button id="backButton">Volver a la página principal</button>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const adminPanel = document.getElementById('admin-panel');
+        const infoPanel = document.getElementById('info-panel');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginButton = document.getElementById('loginButton');
+        const infoButton = document.getElementById('infoButton');
+        const backButton = document.getElementById('backButton');
+        const messageDiv = document.getElementById('message');
+        const logoutButton = document.getElementById('logoutButton');
+        const addUserButton = document.getElementById('addUserButton');
+        const newUsernameInput = document.getElementById('new-username');
+        const newPasswordInput = document.getElementById('new-password');
+        const newLinkInput = document.getElementById('new-link');
+        const adminMessageDiv = document.getElementById('admin-message');
+
+        function showMessage(element, text, isSuccess) {
+            element.textContent = text;
+            element.style.color = isSuccess ? 'green' : 'red';
+        }
+
+        loginButton.addEventListener('click', function() {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            if (username && password) {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.isAdmin) {
+                            loginForm.classList.add('hidden');
+                            infoPanel.classList.add('hidden');
+                            adminPanel.classList.remove('hidden');
+                            showMessage(messageDiv, 'Acceso como administrador exitoso.', true);
+                        } else {
+                            window.location.href = data.link;
+                        }
+                    } else {
+                        showMessage(messageDiv, data.message, false);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showMessage(messageDiv, 'Error al conectar con el servidor.', false);
+                });
+            } else {
+                showMessage(messageDiv, 'Por favor, ingrese usuario y contraseña.', false);
+            }
+        });
+
+        logoutButton.addEventListener('click', function() {
+            adminPanel.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            showMessage(messageDiv, '', true);
+        });
+
+        addUserButton.addEventListener('click', function() {
+            const newUser = newUsernameInput.value;
+            const newPass = newPasswordInput.value;
+            const newLink = newLinkInput.value;
+
+            if (newUser && newPass && newLink) {
+                fetch('/api/add-user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: newUser, password: newPass, link: newLink }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage(adminMessageDiv, `Usuario '${newUser}' añadido con éxito.`, true);
+                        newUsernameInput.value = "";
+                        newPasswordInput.value = "";
+                        newLinkInput.value = "";
+                    } else {
+                        showMessage(adminMessageDiv, 'Error al añadir el usuario: ' + data.message, false);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showMessage(adminMessageDiv, 'Error al conectar con el servidor.', false);
+                });
+            } else {
+                showMessage(adminMessageDiv, 'Por favor, complete todos los campos.', false);
+            }
+        });
+
+        // Evento para mostrar el panel de información
+        infoButton.addEventListener('click', function() {
+            loginForm.classList.add('hidden');
+            infoPanel.classList.remove('hidden');
+        });
+
+        // Evento para volver al formulario de inicio de sesión
+        backButton.addEventListener('click', function() {
+            infoPanel.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
