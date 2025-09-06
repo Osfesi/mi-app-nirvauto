@@ -1,57 +1,97 @@
 const express = require('express');
 const path = require('path');
+const { MongoClient } = require('mongodb');
+
 const app = express();
 
-// Middleware para procesar JSON
 app.use(express.json());
 
-// Objeto para simular la base de datos de usuarios
-let userCredentials = {
-    "545": {
-        password: "rizos",
-        link: "https://wayground.com/join?gc=56903938"
-    },
-    "usuario1": {
-        password: "password1",
-        link: "https://www.ejemplo1.com"
-    }
-};
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  console.error('Error: La variable de entorno MONGODB_URI no está definida.');
+  process.exit(1);
+}
+
+// Variables para la conexión y la colección
+let db;
+let usersCollection;
+
+// Función para conectar a la base de datos
+async function connectToDatabase() {
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    db = client.db('admin_db');
+    usersCollection = db.collection('users');
+    console.log('Conexión a MongoDB exitosa.');
+  } catch (error) {
+    console.error('Error al conectar a la base de datos:', error);
+    process.exit(1);
+  }
+}
+
+// Conectar a la base de datos antes de iniciar el servidor
+connectToDatabase();
 
 // Ruta para añadir un nuevo usuario
-app.post('/api/add-user', (req, res) => {
-    const { username, password, link } = req.body;
+app.post('/api/add-user', async (req, res) => {
+  const { username, password, link } = req.body;
 
-    if (!username || !password || !link) {
-        return res.status(400).json({ success: false, message: 'Faltan campos.' });
+  if (!username || !password || !link) {
+    return res.status(400).json({ success: false, message: 'Faltan campos.' });
+  }
+
+  try {
+    const existingUser = await usersCollection.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'El usuario ya existe.' });
     }
 
-    userCredentials[username] = { password, link };
+    const newUser = { username, password, link };
+    await usersCollection.insertOne(newUser);
 
-    console.log(`Usuario '${username}' añadido. Credenciales actualizadas:`, userCredentials);
-
+    console.log(`Usuario '${username}' añadido a la base de datos.`);
     res.json({ success: true, message: `Usuario '${username}' añadido con éxito.` });
+  } catch (error) {
+    console.error('Error al añadir usuario:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+  }
 });
 
 // Ruta para manejar el inicio de sesión
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  const adminUser = "1955";
+  const adminPass = "Nirvauto00";
 
-    const adminUser = "1955";
-    const adminPass = "Nirvauto00";
-    if (username === adminUser && password === adminPass) {
-        return res.json({ success: true, isAdmin: true });
+  if (username === adminUser && password === adminPass) {
+    return res.json({ success: true, isAdmin: true });
+  }
+
+  try {
+    const user = await usersCollection.findOne({ username });
+
+    if (user && user.password === password) {
+      return res.json({ success: true, isAdmin: false, link: user.link });
     }
 
-    if (userCredentials[username] && userCredentials[username].password === password) {
-        const link = userCredentials[username].link;
-        return res.json({ success: true, link });
-    }
-
-    res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+    res.json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+  }
 });
 
-// Servir archivos estáticos desde la carpeta 'public'
+// Sirve archivos estáticos (HTML, CSS, JS del frontend)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Exportar la app Express para Vercel
-module.exports = app;
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Puerto de escucha
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor escuchando en el puerto ${PORT}`);
+});
