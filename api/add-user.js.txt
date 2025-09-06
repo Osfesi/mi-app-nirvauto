@@ -54,21 +54,3 @@ module.exports = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interno del servidor.' });
   }
 };
-```
-eof
-
-#### Paso 3: Elimina el archivo `api/index.js` anterior
-
-Ahora, por favor, elimina el archivo `api/index.js` que creaste antes. Esos dos nuevos archivos lo reemplazan por completo.
-
-Cuando hayas terminado, tu estructura de archivos debería verse así:
-
-```
-/tu-proyecto
-|-- /api
-|   |-- login.js       <-- Nuevo archivo para la ruta /api/login
-|   |-- add-user.js    <-- Nuevo archivo para la ruta /api/add-user
-|-- /public
-|   |-- index.html
-|   |-- style.css
-|-- package.json
