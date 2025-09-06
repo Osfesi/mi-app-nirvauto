@@ -11,6 +11,8 @@ app.use(express.json());
 // URI de conexión a MongoDB, se obtiene de las variables de entorno de Vercel
 const uri = process.env.MONGODB_URI;
 
+let db;
+
 // Conectar a MongoDB
 async function connectToDB() {
     if (!uri) {
@@ -28,7 +30,6 @@ async function connectToDB() {
     }
 }
 
-let db;
 connectToDB().then(database => {
     db = database;
 }).catch(console.error);
