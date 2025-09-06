@@ -13,26 +13,32 @@ const uri = process.env.MONGODB_URI;
 
 let db;
 
-// Conectar a MongoDB
-async function connectToDB() {
+// Conectar a MongoDB y luego iniciar el servidor
+async function startServer() {
     if (!uri) {
-        console.error("Error al conectar a la base de datos: La variable de entorno MONGODB_URI no está definida.");
-        return null;
+        console.error("Error: La variable de entorno MONGODB_URI no está definida.");
+        process.exit(1); 
     }
     const client = new MongoClient(uri);
     try {
         await client.connect();
-        console.log("Conectado a la base de datos de MongoDB");
-        return client.db("admin_db"); // El nombre de la base de datos es admin_db
+        db = client.db("admin_db"); // El nombre de la base de la base de datos es admin_db
+        console.log("Conectado a la base de datos de MongoDB y servidor iniciado.");
+
+        // Iniciar el servidor SOLO después de conectar a la DB
+        app.listen(PORT, () => {
+            console.log(`Servidor escuchando en el puerto ${PORT}`);
+        });
+
     } catch (e) {
         console.error("Error al conectar a la base de datos:", e.message);
-        return null;
+        // Si no se puede conectar, salimos del proceso para evitar que la app corra sin DB
+        process.exit(1);
     }
 }
 
-connectToDB().then(database => {
-    db = database;
-}).catch(console.error);
+// Iniciar la aplicación
+startServer();
 
 // Ruta para añadir un nuevo usuario
 app.post('/api/add-user', async (req, res) => {
@@ -43,6 +49,7 @@ app.post('/api/add-user', async (req, res) => {
     }
 
     if (!db) {
+        // Esta comprobación ahora es redundante pero la mantenemos por seguridad
         return res.status(500).json({ success: false, message: 'Error de conexión a la base de datos.' });
     }
 
@@ -83,6 +90,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     if (!db) {
+        // Esta comprobación es redundante pero la mantenemos por seguridad
         return res.status(500).json({ success: false, message: 'Error de conexión a la base de datos.' });
     }
 
@@ -105,11 +113,6 @@ app.post('/api/login', async (req, res) => {
 
 // Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
-});
 
 // Exportar la app Express para Vercel
 module.exports = app;
