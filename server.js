@@ -47,6 +47,16 @@ app.post('/api/add-user', async (req, res) => {
 
     try {
         const usersCollection = db.collection('users');
+        
+        // 1. Verificar si el usuario ya existe
+        const existingUser = await usersCollection.findOne({ username });
+
+        if (existingUser) {
+            // El usuario ya existe, no se puede añadir
+            return res.status(409).json({ success: false, message: 'Este usuario ya existe.' });
+        }
+
+        // 2. Si el usuario no existe, añadir el nuevo
         const result = await usersCollection.insertOne({ username, password, link });
 
         if (result.acknowledged) {
