@@ -41,16 +41,19 @@ module.exports = async (req, res) => {
     const existingUser = await usersCollection.findOne({ username });
     if (existingUser) {
       res.status(409).json({ success: false, message: 'Este usuario ya existe.' });
-    } else {
-      const result = await usersCollection.insertOne({ username, password, link });
-      if (result.acknowledged) {
-        res.json({ success: true, message: `Usuario '${username}' añadido con éxito.` });
-      } else {
-        res.status(500).json({ success: false, message: 'No se pudo añadir el usuario.' });
-      }
+      return;
     }
+    
+    const result = await usersCollection.insertOne({ username, password, link });
+    if (result.acknowledged) {
+      res.json({ success: true, message: `Usuario '${username}' añadido con éxito.` });
+    } else {
+      res.status(500).json({ success: false, message: 'No se pudo añadir el usuario.' });
+    }
+    
   } catch (e) {
-    console.error('Error:', e);
-    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    console.error('Error en la función de añadir usuario:', e);
+    // Este mensaje de error será más específico en la consola de Vercel
+    res.status(500).json({ success: false, message: 'Error interno del servidor. Por favor, revisa los logs de Vercel.' });
   }
 };
